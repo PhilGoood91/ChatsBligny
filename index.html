@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐱 Stock Chats Bligny</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #ff6b9d;
+    --rose-clair: #ffd1e0;
+    --violet: #7b68ee;
+    --jaune: #ffd93d;
+    --turquoise: #4ecdc4;
+    --orange: #ff9a3c;
+    --vert: #6bcf7f;
+    --rouge: #ff5252;
+    --fond: #fff8f3;
+    --texte: #3d2c4d;
+    --ombre: 0 4px 14px rgba(123, 104, 238, 0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Fredoka', sans-serif;
+    background: var(--fond);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(255, 209, 224, 0.4) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(78, 205, 196, 0.25) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(255, 217, 61, 0.15) 0%, transparent 50%);
+    color: var(--texte);
+    min-height: 100vh;
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    text-align: center;
+    padding: 20px 16px;
+    background: linear-gradient(135deg, var(--rose) 0%, var(--violet) 100%);
+    border-radius: 24px;
+    color: white;
+    box-shadow: var(--ombre);
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: "🐾";
+    position: absolute;
+    font-size: 80px;
+    opacity: 0.15;
+    top: -10px; right: -10px;
+    transform: rotate(20deg);
+  }
+  header h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 2.4em;
+    line-height: 1;
+    margin-bottom: 6px;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+  }
+  header p {
+    font-size: 0.95em;
+    opacity: 0.95;
+    font-weight: 500;
+  }
+  .kitty { font-size: 1.4em; }
+
+  /* ─── BARRE D'ACTIONS ─── */
+  .actions-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 18px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1em;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    box-shadow: var(--ombre);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-ajouter { background: linear-gradient(135deg, var(--vert), var(--turquoise)); }
+  .btn-refresh { background: linear-gradient(135deg, var(--orange), var(--jaune)); color: var(--texte); }
+
+  /* ─── STATUT ─── */
+  #statut {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+    font-weight: 500;
+    display: none;
+  }
+  #statut.show { display: block; }
+  #statut.ok { background: #d4f4dd; color: #2e7d32; }
+  #statut.err { background: #ffd6d6; color: #c62828; }
+  #statut.info { background: #fff3cd; color: #856404; }
+
+  /* ─── FILTRES ─── */
+  .filtres {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .filtre-btn {
+    padding: 8px 16px;
+    background: white;
+    border: 2px solid var(--rose-clair);
+    border-radius: 20px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    color: var(--texte);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filtre-btn.actif {
+    background: var(--rose);
+    color: white;
+    border-color: var(--rose);
+  }
+
+  /* ─── RÉSUMÉ STOCK ─── */
+  .resume {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .resume-card {
+    background: white;
+    padding: 14px 8px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: var(--ombre);
+    border-top: 4px solid var(--rose);
+  }
+  .resume-card:nth-child(2) { border-top-color: var(--turquoise); }
+  .resume-card:nth-child(3) { border-top-color: var(--jaune); }
+  .resume-num {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--violet);
+  }
+  .resume-label {
+    font-size: 0.78em;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── LISTE DES ARTICLES ─── */
+  .liste {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article {
+    background: white;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: var(--ombre);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-left: 5px solid var(--rose);
+    animation: pop 0.3s ease;
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .article.croquettes { border-left-color: var(--orange); }
+  .article.patee { border-left-color: var(--turquoise); }
+  .article.friandises { border-left-color: var(--jaune); }
+  .article.litiere { border-left-color: var(--violet); }
+  .article.autre { border-left-color: var(--rose); }
+  .article.rupture { background: #fff5f5; border-left-color: var(--rouge); }
+
+  .article-icone {
+    font-size: 2.2em;
+    flex-shrink: 0;
+    width: 50px;
+    text-align: center;
+  }
+  .article-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .article-marque {
+    font-weight: 600;
+    font-size: 1.05em;
+    color: var(--texte);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .article-details {
+    font-size: 0.85em;
+    color: #888;
+    margin-top: 2px;
+  }
+  .article-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .qte-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.3em;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+  }
+  .qte-btn:active { transform: scale(0.9); }
+  .qte-moins { background: var(--rouge); }
+  .qte-plus { background: var(--vert); }
+  .qte-num {
+    min-width: 32px;
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: 700;
+    color: var(--violet);
+  }
+  .article-supprimer {
+    background: none;
+    border: none;
+    font-size: 1.1em;
+    cursor: pointer;
+    color: #ccc;
+    padding: 4px;
+    margin-left: 4px;
+  }
+  .article-supprimer:hover { color: var(--rouge); }
+
+  .vide {
+    text-align: center;
+    padding: 40px 20px;
+    color: #aaa;
+    font-style: italic;
+  }
+  .vide .gros { font-size: 3em; display: block; margin-bottom: 8px; }
+
+  /* ─── MODAL ─── */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(61, 44, 77, 0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: pop 0.3s ease;
+  }
+  .modal h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 2em;
+    color: var(--violet);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .modal label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    font-size: 0.9em;
+    color: var(--texte);
+  }
+  .modal input, .modal select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--rose-clair);
+    border-radius: 12px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1em;
+    margin-bottom: 14px;
+    background: var(--fond);
+  }
+  .modal input:focus, .modal select:focus {
+    outline: none;
+    border-color: var(--violet);
+  }
+  .modal-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .modal-btns .btn { flex: 1; }
+  .btn-annuler { background: #ccc; color: var(--texte); }
+  .btn-valider { background: linear-gradient(135deg, var(--rose), var(--violet)); }
+
+  footer {
+    text-align: center;
+    margin-top: 30px;
+    color: #aaa;
+    font-size: 0.8em;
+  }
+  footer .coeur { color: var(--rose); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="kitty">😺</span> Les Amis des Chats de Bligny</h1>
+  <p>Gestion du stock de nourriture</p>
+</header>
+
+<div id="statut"></div>
+
+<div class="resume">
+  <div class="resume-card">
+    <div class="resume-num" id="resume-articles">0</div>
+    <div class="resume-label">Articles</div>
+  </div>
+  <div class="resume-card">
+    <div class="resume-num" id="resume-unites">0</div>
+    <div class="resume-label">Unités totales</div>
+  </div>
+  <div class="resume-card">
+    <div class="resume-num" id="resume-rupture">0</div>
+    <div class="resume-label">En rupture</div>
+  </div>
+</div>
+
+<div class="actions-bar">
+  <button class="btn btn-ajouter" onclick="ouvrirModal()">➕ Ajouter</button>
+  <button class="btn btn-refresh" onclick="chargerStock()">🔄 Actualiser</button>
+</div>
+
+<div class="filtres">
+  <button class="filtre-btn actif" data-type="tous" onclick="filtrer(this)">Tous</button>
+  <button class="filtre-btn" data-type="croquettes" onclick="filtrer(this)">🥣 Croquettes</button>
+  <button class="filtre-btn" data-type="patee" onclick="filtrer(this)">🥫 Pâtée</button>
+  <button class="filtre-btn" data-type="friandises" onclick="filtrer(this)">🍪 Friandises</button>
+  <button class="filtre-btn" data-type="litiere" onclick="filtrer(this)">🪨 Litière</button>
+  <button class="filtre-btn" data-type="autre" onclick="filtrer(this)">📦 Autre</button>
+</div>
+
+<div class="liste" id="liste"></div>
+
+<!-- MODAL D'AJOUT -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2>🐾 Nouvel article</h2>
+    <label>Type de nourriture</label>
+    <select id="m-type">
+      <option value="croquettes">🥣 Croquettes</option>
+      <option value="patee">🥫 Pâtée</option>
+      <option value="friandises">🍪 Friandises</option>
+      <option value="litiere">🪨 Litière</option>
+      <option value="autre">📦 Autre</option>
+    </select>
+
+    <label>Marque</label>
+    <input type="text" id="m-marque" placeholder="Ex : Whiskas, Felix...">
+
+    <label>Poids / Format</label>
+    <input type="text" id="m-poids" placeholder="Ex : 2 kg, 100 g, 400 ml">
+
+    <label>Quantité (nombre de sacs/boîtes)</label>
+    <input type="number" id="m-quantite" min="1" value="1">
+
+    <div class="modal-btns">
+      <button class="btn btn-annuler" onclick="fermerModal()">Annuler</button>
+      <button class="btn btn-valider" onclick="ajouterArticle()">✓ Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Fait avec <span class="coeur">♥</span> pour les chats de Bligny • GUILLEVIC 2026
+</footer>
+
+<script>
+// ⚠️ REMPLACER PAR L'URL /exec DE TON DÉPLOIEMENT APPS SCRIPT
+const WEBHOOK_URL = "https://script.google.com/macros/s/REMPLACER_PAR_TON_URL/exec";
+
+let stockComplet = [];
+let filtreActif = "tous";
+
+const ICONES = {
+  croquettes: "🥣",
+  patee: "🥫",
+  friandises: "🍪",
+  litiere: "🪨",
+  autre: "📦"
+};
+const LIBELLES = {
+  croquettes: "Croquettes",
+  patee: "Pâtée",
+  friandises: "Friandises",
+  litiere: "Litière",
+  autre: "Autre"
+};
+
+// ─── STATUT ───
+function afficherStatut(msg, type) {
+  const el = document.getElementById("statut");
+  el.textContent = msg;
+  el.className = "show " + type;
+  if (type === "ok") {
+    setTimeout(() => el.className = "", 3000);
+  }
+}
+
+// ─── CHARGEMENT DU STOCK ───
+async function chargerStock() {
+  afficherStatut("⏳ Chargement du stock...", "info");
+  try {
+    const url = WEBHOOK_URL + "?action=lire&t=" + Date.now();
+    const r = await fetch(url);
+    const data = await r.json();
+    if (data.status === "ok") {
+      stockComplet = data.stock || [];
+      afficherListe();
+      afficherStatut("✓ Stock à jour", "ok");
+    } else {
+      afficherStatut("✗ " + (data.message || "Erreur"), "err");
+    }
+  } catch(e) {
+    afficherStatut("✗ Erreur réseau : " + e.message, "err");
+  }
+}
+
+// ─── AFFICHAGE ───
+function afficherListe() {
+  const liste = document.getElementById("liste");
+  let items = stockComplet;
+  if (filtreActif !== "tous") {
+    items = items.filter(a => a.type === filtreActif);
+  }
+
+  // Tri : ruptures en premier, puis par marque
+  items.sort((a, b) => {
+    if (a.quantite === 0 && b.quantite > 0) return -1;
+    if (b.quantite === 0 && a.quantite > 0) return 1;
+    return (a.marque || "").localeCompare(b.marque || "");
+  });
+
+  if (items.length === 0) {
+    liste.innerHTML = '<div class="vide"><span class="gros">🐈</span>Aucun article pour ce filtre.<br>Clique sur ➕ Ajouter pour commencer !</div>';
+  } else {
+    liste.innerHTML = items.map(a => {
+      const rupture = a.quantite === 0 ? " rupture" : "";
+      const icone = ICONES[a.type] || "📦";
+      return `
+        <div class="article ${a.type}${rupture}">
+          <div class="article-icone">${icone}</div>
+          <div class="article-info">
+            <div class="article-marque">${escapeHtml(a.marque || "Sans marque")}</div>
+            <div class="article-details">${LIBELLES[a.type] || a.type} • ${escapeHtml(a.poids || "")}</div>
+          </div>
+          <div class="article-controls">
+            <button class="qte-btn qte-moins" onclick="modifierQte('${a.id}', -1)">−</button>
+            <span class="qte-num">${a.quantite}</span>
+            <button class="qte-btn qte-plus" onclick="modifierQte('${a.id}', 1)">+</button>
+            <button class="article-supprimer" onclick="supprimerArticle('${a.id}', '${escapeHtml(a.marque)}')" title="Supprimer">🗑</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Mise à jour du résumé
+  document.getElementById("resume-articles").textContent = stockComplet.length;
+  document.getElementById("resume-unites").textContent = stockComplet.reduce((s, a) => s + (Number(a.quantite) || 0), 0);
+  document.getElementById("resume-rupture").textContent = stockComplet.filter(a => a.quantite === 0).length;
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// ─── FILTRES ───
+function filtrer(btn) {
+  document.querySelectorAll(".filtre-btn").forEach(b => b.classList.remove("actif"));
+  btn.classList.add("actif");
+  filtreActif = btn.dataset.type;
+  afficherListe();
+}
+
+// ─── MODAL ───
+function ouvrirModal() {
+  document.getElementById("modal").classList.add("show");
+  document.getElementById("m-marque").value = "";
+  document.getElementById("m-poids").value = "";
+  document.getElementById("m-quantite").value = 1;
+}
+function fermerModal() {
+  document.getElementById("modal").classList.remove("show");
+}
+
+// ─── AJOUT ───
+async function ajouterArticle() {
+  const type = document.getElementById("m-type").value;
+  const marque = document.getElementById("m-marque").value.trim();
+  const poids = document.getElementById("m-poids").value.trim();
+  const quantite = parseInt(document.getElementById("m-quantite").value) || 1;
+
+  if (!marque) { alert("Indique au moins une marque !"); return; }
+
+  fermerModal();
+  afficherStatut("⏳ Ajout en cours...", "info");
+
+  await envoyerAction({ action: "ajouter", type, marque, poids, quantite });
+  await new Promise(r => setTimeout(r, 1500));
+  await chargerStock();
+}
+
+// ─── MODIFIER QUANTITÉ ───
+async function modifierQte(id, variation) {
+  // Mise à jour optimiste de l'affichage
+  const art = stockComplet.find(a => a.id === id);
+  if (art) {
+    art.quantite = Math.max(0, art.quantite + variation);
+    afficherListe();
+  }
+  await envoyerAction({ action: "modifier", id, variation });
+  // On rafraîchit après pour synchroniser
+  setTimeout(chargerStock, 1500);
+}
+
+// ─── SUPPRIMER ───
+async function supprimerArticle(id, marque) {
+  if (!confirm("Supprimer définitivement \"" + marque + "\" du stock ?")) return;
+  afficherStatut("⏳ Suppression...", "info");
+  await envoyerAction({ action: "supprimer", id });
+  await new Promise(r => setTimeout(r, 1500));
+  await chargerStock();
+}
+
+// ─── ENVOI APPS SCRIPT (pattern validé) ───
+async function envoyerAction(payload) {
+  try {
+    await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    afficherStatut("✗ Erreur : " + e.message, "err");
+  }
+}
+
+// ─── INIT ───
+window.addEventListener("load", () => {
+  if (WEBHOOK_URL.includes("REMPLACER")) {
+    afficherStatut("⚠️ URL Apps Script à configurer dans le code", "err");
+  } else {
+    chargerStock();
+  }
+});
+
+// Fermer la modal en cliquant en dehors
+document.getElementById("modal").addEventListener("click", (e) => {
+  if (e.target.id === "modal") fermerModal();
+});
+</script>
+</body>
+</html>
